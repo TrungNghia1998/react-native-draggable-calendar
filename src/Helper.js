@@ -80,7 +80,7 @@ export const Helper = {
     // 3. use binary search to find the result
     if(rowData === undefined) return null;
     const result = Helper.binarySearch(rowData, position, (cur, compared) => {
-      if(compared.x < cur.x) {
+      if(compared.x < cur.x - 20) {
         return -1;
       } else if(compared.x > cur.x + cur.width + 20) {
         return 1;
@@ -89,7 +89,7 @@ export const Helper = {
       }
     });
     // 4. return the final result
-    return result !== undefined ? Helper.parseDate(result.date) : 1;
+    return result !== undefined ? Helper.parseDate(result.date) : null;
   },
   dateToData(date, calendarData) {
     if(calendarData && date) {

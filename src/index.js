@@ -271,12 +271,13 @@ export class DraggableCalendar extends Component {
     const touchingDate = Helper.positionToDate({x: x + dx, y: y + dy}, this._dayLayoutsIndex);
     // const touchingData = Helper.dateToData(touchingDate, this.state.calendarData);
 
-    // only if the touching day is available, it can continues
+    // // only if the touching day is available, it can continues
     // if(!(touchingData && touchingData.available)) return;
-
+    console.log('touchingDate ', touchingDate)
     // generates new selection dateRange
     let newSelection = [], {startDate, endDate} = this.state;
     if(this._pressStart && touchingDate.getTime() !== startDate.getTime()) {
+      if (touchingDate <= new Date()) return
       if(touchingDate <= endDate) {
         newSelection = [touchingDate, endDate];
       } else {
@@ -450,6 +451,7 @@ export class DraggableCalendar extends Component {
 
   render() {
     const {style} = this.props;
+
     return (
       <View style={[styles.container, style]}>
         {/* {this._renderHeader()} */}
