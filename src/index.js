@@ -166,11 +166,12 @@ export class DraggableCalendar extends Component {
     
       
     } else if (this.props.rowScroll) {
-      let curr = new Date(current)
-      let first = curr.getDate() - curr.getDay()
-      let last = first + 6
-      startDate = new Date(curr.setDate(first));
-      endDate = new Date(curr.setDate(last))
+      let today = Helper.parseDate(Helper.formatDate(new Date(current), 'yyyy-MM-dd'));
+      let first = today.getDate() - (today.getDay())
+      startDate = new Date(new Date(today).setDate(first));
+      let end =new Date(startDate)
+      var lastday = end.getDate() - (end.getDay()) + 6
+      endDate = new Date(end.setDate(lastday))
     }
 
     return this._genDayData({startDate, endDate, availableStartDate, availableEndDate});
@@ -480,10 +481,10 @@ const styles = StyleSheet.create({
   bodyContainer: {
     flex: 1,
     overflow: 'hidden',
-    paddingHorizontal: 20
+    marginHorizontal: 20
   },
   dragContainer: {
-    zIndex: 10,
+    zIndex: 1,
     position: 'absolute'
   }
 });

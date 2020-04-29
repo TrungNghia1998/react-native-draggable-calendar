@@ -54,7 +54,6 @@ export const Helper = {
     return undefined;
   },
   positionToDate(position, dayLayoutsIndex) {
-
     // 1. use binary search to find the monthIndex
     const monthData = Helper.binarySearch(dayLayoutsIndex, position, (cur, compared) => {
       if(compared.y < cur.boundary.upper) {
@@ -81,19 +80,16 @@ export const Helper = {
     // 3. use binary search to find the result
     if(rowData === undefined) return null;
     const result = Helper.binarySearch(rowData, position, (cur, compared) => {
-      console.log('cur ', cur)
-      console.log('compared ', compared)
       if(compared.x < cur.x) {
         return -1;
-      } else if(compared.x > cur.x + cur.width) {
+      } else if(compared.x > cur.x + cur.width + 20) {
         return 1;
       } else {
         return 0;
       }
     });
-    console.log('result ', result)
     // 4. return the final result
-    return result !== undefined ? Helper.parseDate(result.date) : null;
+    return result !== undefined ? Helper.parseDate(result.date) : 1;
   },
   dateToData(date, calendarData) {
     if(calendarData && date) {
