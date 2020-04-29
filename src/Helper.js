@@ -81,15 +81,17 @@ export const Helper = {
     // 3. use binary search to find the result
     if(rowData === undefined) return null;
     const result = Helper.binarySearch(rowData, position, (cur, compared) => {
+      console.log('cur ', cur)
+      console.log('compared ', compared)
       if(compared.x < cur.x) {
         return -1;
-      } else if(compared.x > cur.x + cur.width + 50) {
+      } else if(compared.x > cur.x + cur.width) {
         return 1;
       } else {
         return 0;
       }
     });
-
+    console.log('result ', result)
     // 4. return the final result
     return result !== undefined ? Helper.parseDate(result.date) : null;
   },
@@ -135,7 +137,7 @@ export const Helper = {
         lower: dayLayouts[len - 1].y + dayLayouts[len - 1].height
       },
       dayLayouts: Helper.arrayTransform(dayLayouts.map((item, index) => {
-        const date = Object.keys(dates)[index]
+        const date = `${Object.keys(dates)[index]}`;
         if(index === 0){
           return Object.assign({date}, item, {x: left, width: item.x + item.width - left});
         } else if (index === len - 1) {
@@ -259,7 +261,7 @@ export const Helper = {
     });
   },
   getLastDayOfMonth(fullYear, month) {
-    const newDate = new Date(fullYear, month + 1, 1);
+    const newDate = new Date(fullYear, month, 1);
     return new Date(newDate.getTime() - 1000 * 60 * 60 * 24);
   },
   getValue(obj, keyChain, defaultValue) {
