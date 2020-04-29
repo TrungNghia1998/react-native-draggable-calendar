@@ -15,6 +15,7 @@ import {Helper, DAY_STATUS} from "./Helper";
 
 import {Day} from "./Day";
 import {MonthHeader} from "./MonthHeader";
+import { last } from 'ramda';
 
 export class DraggableCalendar extends Component {
 
@@ -45,7 +46,7 @@ export class DraggableCalendar extends Component {
     this._onPanRelease = this._onPanRelease.bind(this);
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     this._initPanResponder();
     this._updateDayStatus(this.props.initialSelectedRange);
   }
@@ -54,6 +55,24 @@ export class DraggableCalendar extends Component {
     Helper.waitFor(0).then(() => this._genLayouts());
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.current !== this.props.current) {
+      console.log(this.props.current)
+      const {initialSelectedRange, fullDateRange, availableDateRange, maxDays} = this.props;
+      this._initPanResponder();
+      this._updateDayStatus(initialSelectedRange);
+      this._monthRefs = [];
+      this._dayLayouts = {};
+      this._touchPoint = {};
+      this.setState({
+        calendarData: this._genCalendarData({fullDateRange, availableDateRange, maxDays}),
+        startDate: new Date(this.props.current),
+        endDate: new Date(this.props.current),
+      })
+      this._dayLayoutsIndex = [];
+      Helper.waitFor(0).then(() => this._genLayouts());
+    }
+  }
   resetSelection(selectionRange = []) {
 
     // illegal selectionRange
@@ -91,23 +110,22 @@ export class DraggableCalendar extends Component {
   _genDayData({startDate, endDate, availableStartDate, availableEndDate}) {
 
     let result = {}, curDate = new Date(startDate);
-
+   
+    const identifier = Helper.formatDate(this.props.current, 'yyyy-MM');
     while(curDate <= endDate) {
 
       // use `year-month` as the unique identifier
-      const identifier = Helper.formatDate(curDate, 'yyyy-MM');
 
       // if it is the first day of a month, init it with an array
       // Note: there are maybe several empty days at the first of each month
       if(!result[identifier]) {
         result[identifier] = [...(new Array(curDate.getDay() % 7).fill({}))];
       }
-
       // save each day's data into result
       result[identifier].push({
         date: curDate,
         status: DAY_STATUS.NONE,
-        available: (curDate >= availableStartDate && curDate <= availableEndDate)
+        available: new Date() <= new Date(curDate)
       });
 
       // curDate adds
@@ -126,24 +144,42 @@ export class DraggableCalendar extends Component {
   _genCalendarData({fullDateRange, availableDateRange, maxDays}) {
 
     let startDate, endDate, availableStartDate, availableEndDate;
-
+    const {current} = this.props
     // if the exact dateRange is given, use availableDateRange; or render [today, today + maxDays]
     if(fullDateRange) {
       [startDate, endDate] = fullDateRange;
       [availableStartDate, availableEndDate] = availableDateRange;
-    } else {
+    } else if (!this.props.rowScroll) {
       const today = Helper.parseDate(Helper.formatDate(new Date(), 'yyyy-MM-dd'));
       availableStartDate = today;
       availableEndDate = Helper.addDay(today, maxDays);
-      startDate = new Date(new Date(today).setDate(1));
-      endDate = Helper.getLastDayOfMonth(availableEndDate.getFullYear(), availableEndDate.getMonth());
+
+      let endMonth = current.getMonth()
+      let endYear = current.getFullYear()
+  
+      startDate = new Date(new Date(current).setDate(0));
+      endDate = Helper.getLastDayOfMonth(endYear, endMonth);
+
+      let day = startDate.getDay();
+      
+      startDate = new Date(startDate.getTime() - 60*60*24* day*1000);
+
+      let curr = new Date(endDate)
+      let first = curr.getDate() - curr.getDay()
+      let last = first + 7
+      endDate = new Date(curr.setDate(last))
+    } else if (this.props.rowScroll) {
+      let curr = new Date(current)
+      let first = curr.getDate() - curr.getDay()
+      let last = first + 6
+      startDate = new Date(curr.setDate(first));
+      endDate = new Date(curr.setDate(last))
     }
 
     return this._genDayData({startDate, endDate, availableStartDate, availableEndDate});
   }
 
   _genDayLayout(identifier, layout) {
-
     // according to the identifier, find the month data from calendarData
     const monthData = this.state.calendarData[identifier];
 
@@ -170,7 +206,8 @@ export class DraggableCalendar extends Component {
     // build the index for days' layouts to speed up transforming (x, y) to date
     this._dayLayoutsIndex.push(Helper.buildIndexItem({
       identifier, left: x, right: x + width,
-      dayLayouts: Object.keys(dayLayouts).map(key => dayLayouts[key])
+      dayLayouts: Object.keys(dayLayouts).map(key => dayLayouts[key]),
+      dates: dayLayouts
     }));
   }
 
@@ -237,7 +274,7 @@ export class DraggableCalendar extends Component {
     const touchingData = Helper.dateToData(touchingDate, this.state.calendarData);
 
     // only if the touching day is available, it can continues
-    if(!(touchingData && touchingData.available)) return;
+    // if(!(touchingData && touchingData.available)) return;
 
     // generates new selection dateRange
     let newSelection = [], {startDate, endDate} = this.state;
@@ -340,7 +377,7 @@ export class DraggableCalendar extends Component {
 
   _renderMonth({identifier, data, index}) {
     return [
-      this._renderMonthHeader({identifier}),
+      // this._renderMonthHeader({identifier}),
       this._renderMonthBody({identifier, data, index})
     ];
   }
@@ -417,7 +454,7 @@ export class DraggableCalendar extends Component {
     const {style} = this.props;
     return (
       <View style={[styles.container, style]}>
-        {this._renderHeader()}
+        {/* {this._renderHeader()} */}
         {this._renderBody()}
       </View>
     );
@@ -425,7 +462,7 @@ export class DraggableCalendar extends Component {
 }
 
 DraggableCalendar.defaultProps = {
-  maxDays: 90,
+  maxDays: 31,
   initialSelectedRange: []
 };
 
@@ -445,7 +482,8 @@ const styles = StyleSheet.create({
   },
   bodyContainer: {
     flex: 1,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    paddingHorizontal: 20
   },
   dragContainer: {
     zIndex: 1,

@@ -83,7 +83,7 @@ export const Helper = {
     const result = Helper.binarySearch(rowData, position, (cur, compared) => {
       if(compared.x < cur.x) {
         return -1;
-      } else if(compared.x > cur.x + cur.width) {
+      } else if(compared.x > cur.x + cur.width + 50) {
         return 1;
       } else {
         return 0;
@@ -126,7 +126,7 @@ export const Helper = {
 
     return result;
   },
-  buildIndexItem({identifier, dayLayouts, left, right}) {
+  buildIndexItem({identifier, dayLayouts, left, right, dates}) {
     const len = dayLayouts.length;
     return {
       identifier,
@@ -135,7 +135,7 @@ export const Helper = {
         lower: dayLayouts[len - 1].y + dayLayouts[len - 1].height
       },
       dayLayouts: Helper.arrayTransform(dayLayouts.map((item, index) => {
-        const date = `${identifier}-${index + 1}`;
+        const date = Object.keys(dates)[index]
         if(index === 0){
           return Object.assign({date}, item, {x: left, width: item.x + item.width - left});
         } else if (index === len - 1) {
