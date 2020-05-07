@@ -276,7 +276,7 @@ export class DraggableCalendar extends Component {
     console.log('touchingDate ', touchingDate)
     // generates new selection dateRange
     let newSelection = [], {startDate, endDate} = this.state;
-    if(this._pressStart && touchingDate.getTime() !== startDate.getTime()) {
+    if(this._pressStart && startDate && touchingDate && touchingDate.getTime() !== startDate.getTime()) {
       if (touchingDate <= new Date()) return
       if(touchingDate <= endDate) {
         newSelection = [touchingDate, endDate];
@@ -285,7 +285,7 @@ export class DraggableCalendar extends Component {
         this._pressEnd = true;
         newSelection = [endDate, touchingDate];
       }
-    } else if(this._pressEnd && touchingDate.getTime() !== endDate.getTime()) {
+    } else if(this._pressEnd && touchingDate && endDate && touchingDate.getTime() !== endDate.getTime()) {
       if(touchingDate >= startDate) {
         newSelection = [startDate, touchingDate];
       } else {
